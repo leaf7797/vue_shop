@@ -33,8 +33,8 @@ export default {
         return {
             // 这是登录表单的数据绑定对象
             loginForm:{
-                username:'ye',
-                password:'11'
+                username:'admin',
+                password:'123456'
             },
             // 表单的验证规则对象
             loginFormRules:{
@@ -60,6 +60,10 @@ export default {
                 const {data:res} = await this.$http.post('login', this.loginForm);
                 if(res.meta.status !== 200) return this.$message.error('登录失败')
                 this.$message.success('登陆成功')
+                // 将登陆成功之后的token，保存到客户端的sessionStorage里面
+                window.sessionStorage.setItem('token', res.data.token);
+                // 通过编程式导航跳转到后台页面，路由地址是/home
+                this.$router.push('/home')
             })
         }
     }
