@@ -28,8 +28,6 @@ import {
     Tree,
     Select,
     Option
-
-
 } from 'element-ui'
 
 Vue.use(Button)
