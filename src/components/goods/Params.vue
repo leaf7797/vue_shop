@@ -39,7 +39,26 @@
                     <!-- 动态参数表格 -->
                     <el-table :data="manyTableData" border stripe>
                         <!-- 展开行 -->
-                        <el-table-column type="expand"></el-table-column>
+                        <el-table-column type="expand">
+                            <template slot-scope="scope">
+                                <!-- 循环渲染Tag标签 -->
+                                <el-tag v-for="(item,i) in scope.row.attr_vals" :key="i" closable @close="handleClose(i,scope.row)">{{item}}</el-tag>
+                                <!-- 输入文本框 -->
+                                <el-input
+                                    class="input-new-tag"
+                                    v-if="scope.row.inputVisible"
+                                    v-model="scope.row.inputValue"
+                                    ref="saveTagInput"
+                                    size="small"
+                                    @keyup.enter.native="handleInputConfirm(scope.row)"
+                                    @blur="handleInputConfirm(scope.row)">
+                                </el-input>
+                                    <!-- 添加按钮 -->
+                                <el-button v-else class="button-new-tag" size="small" @click="showInput(scope.row)">+ New Tag</el-button>
+                            </template>
+
+
+                        </el-table-column>
                         <!-- 索引列 -->
                         <el-table-column type="index"></el-table-column>
                         <el-table-column label="参数名称" prop="attr_name"></el-table-column>
@@ -61,7 +80,26 @@
                      <!-- 静态属性表格 -->
                     <el-table :data="onlyTableData" border stripe>
                         <!-- 展开行 -->
-                        <el-table-column type="expand"></el-table-column>
+                         <el-table-column type="expand">
+                            <template slot-scope="scope">
+                                <!-- 循环渲染Tag标签 -->
+                                <el-tag v-for="(item,i) in scope.row.attr_vals" :key="i" closable @close="handleClose(i,scope.row)">{{item}}</el-tag>
+                                <!-- 输入文本框 -->
+                                <el-input
+                                    class="input-new-tag"
+                                    v-if="scope.row.inputVisible"
+                                    v-model="scope.row.inputValue"
+                                    ref="saveTagInput"
+                                    size="small"
+                                    @keyup.enter.native="handleInputConfirm(scope.row)"
+                                    @blur="handleInputConfirm(scope.row)">
+                                </el-input>
+                                    <!-- 添加按钮 -->
+                                <el-button v-else class="button-new-tag" size="small" @click="showInput(scope.row)">+ New Tag</el-button>
+                            </template>
+
+
+                        </el-table-column>
                         <!-- 索引列 -->
                         <el-table-column type="index"></el-table-column>
                         <el-table-column label="参数名称" prop="attr_name"></el-table-column>
@@ -202,7 +240,16 @@ export default {
             if(res.meta.status !== 200){
                 return this.$message.error('获取参数列表失败!')
             }
+
+            res.data.forEach(item => {
+                item.attr_vals = item.attr_vals ? item.attr_vals.split(' '):[]
+                // 控制文本框的显示与隐藏
+                item.inputVisible = false
+                // 文本框中输入的值
+                item.inputVisible = ''
+            })
             console.log(res.data)
+
             if(this.activeName === 'many'){
                 this.manyTableData = res.data
             }else{
@@ -289,7 +336,54 @@ export default {
 
             this.$message.success('删除参数成功')
             this.getParamsData()
-            }
+        },
+        
+        // 文本框失去焦点，或者摁下了enter都会触发
+        async handleInputConfirm(row){
+            if(row.inputValue.trim().length=== 0){
+                row.inputValue = ''
+                row.inputVisible = false
+                return
+            } 
+            // 如果没有return，则证明用户输入了内容，要做后续处理
+            row.attr_vals.push(row.inputValue.trim())
+            row.inputValue = ''
+            row.inputVisible = false
+
+            // 需要发起请求，保存这次操作
+            this.saveAttrVals(row)
+        },
+
+        // 将对attr_vals的操作保存到数据库
+        async saveAttrVals(row){
+            const { data: res } = await this.$http.put(
+            `categories/${this.cateId}/attributes/${row.attr_id}`,
+            { attr_name: row.attr_name, 
+            attr_sel: row.attr_sel,
+            attr_vals: row.attr_vals.join(' ')
+            })
+
+            if (res.meta.status !== 200) {
+                return this.$message.error('修改参数项失败！')
+                }
+            this.$message.success('修改参数项成功！')
+        },
+
+        // 点击按钮，展示文本输入
+        showInput(row){
+            row.inputVisible = true
+            // 让文本框自动获得焦点
+            // $nextTick方法的作业：就是当页面上元素被重新渲染之后，才会执行回调函数中的代码
+            this.$nextTick(_ => {
+            this.$refs.saveTagInput.$refs.input.focus();
+            });
+        },
+
+        // 删除对应的参数可选项
+        handleClose(i, row){
+            row.attr_vals.splice(i, 1)
+            this.saveAttrVals(row)
+        }
        
 
     },
@@ -322,5 +416,13 @@ export default {
 <style lang="less" scoped>
 .cat_opt{
     margin: 15px 0;
+}
+
+.el-tag{
+    margin:10px
+}
+
+.input-new-tag{
+    width: 120px;
 }
 </style>
