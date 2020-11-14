@@ -26,3 +26,15 @@ body,
 .el-pagination {
     margin-top: 15px;
 }
+
+.el-step {
+    margin: 15px 0;
+}
+
+.el-step__title {
+    font-size: 13px;
+}
+
+.el-tabs__item {
+    font-size: 13px !important;
+}

@@ -221,7 +221,6 @@ export default {
                 mobile:[
                     {required:true, message:'请输入手机号', trigger:'blur'},
                     {validator:checkMobile, trigger:'blur'}
-
                 ]
 
             },
