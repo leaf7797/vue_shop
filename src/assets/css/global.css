@@ -38,3 +38,7 @@ body,
 .el-tabs__item {
     font-size: 13px !important;
 }
+
+.ql-editor {
+    min-height: 300px;
+}
